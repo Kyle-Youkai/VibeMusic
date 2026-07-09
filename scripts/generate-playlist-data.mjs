@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import * as XLSX from 'xlsx';
+import XLSX from 'xlsx';
 
 const inputFile = process.argv[2] || 'Single.xlsx';
 const outputFile = process.argv[3] || 'public/data/playlist.json';
