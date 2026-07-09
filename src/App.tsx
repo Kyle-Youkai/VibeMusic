@@ -7,7 +7,7 @@ export default function App() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch('/data/playlist.json')
+    fetch(`${import.meta.env.BASE_URL}data/playlist.json`)
       .then((response) => {
         if (!response.ok) throw new Error('Playlist data has not been generated yet.');
         return response.json();

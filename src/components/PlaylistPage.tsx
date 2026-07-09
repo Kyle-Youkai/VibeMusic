@@ -10,6 +10,8 @@ type PlaylistPageProps = {
   payload: PlaylistPayload;
 };
 
+const assetPath = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+
 function shuffleSongs(songs: Song[]) {
   const shuffled = [...songs];
   for (let index = shuffled.length - 1; index > 0; index -= 1) {
@@ -57,14 +59,14 @@ export function PlaylistPage({ payload }: PlaylistPageProps) {
   return (
     <>
     <div className="mobile-only-message">
-      <img src="/LOGO.png" alt="Vibe Music logo" />
+      <img src={assetPath('LOGO.png')} alt="Vibe Music logo" />
       <h1>Sorry, Vibe Music is desktop only.</h1>
       <p>This experience is designed for a computer screen. Please open it on a desktop or laptop.</p>
     </div>
     <div className="app-shell">
       <aside className="sidebar" aria-label="Primary navigation">
         <div className="brand">
-          <img className="brand-logo" src="/LOGO.png" alt="Vibe Music logo" />
+          <img className="brand-logo" src={assetPath('LOGO.png')} alt="Vibe Music logo" />
           <strong>Vibe Music</strong>
         </div>
         <nav>
@@ -152,7 +154,7 @@ export function PlaylistPage({ payload }: PlaylistPageProps) {
             <section className="hero">
               <div className="hero-glow" aria-hidden="true" />
               <div className="hero-illustration">
-                <img src="/hero-illustration.png" alt="Listener wearing headphones illustration" />
+                <img src={assetPath('hero-illustration.png')} alt="Listener wearing headphones illustration" />
               </div>
               <div className="hero-copy">
                 <span>Personalized Playlist</span>
@@ -215,7 +217,7 @@ export function PlaylistPage({ payload }: PlaylistPageProps) {
               <div className="wishlist-list">
                 {wishlistSongs.map((song) => (
                   <button className="wishlist-row" type="button" key={song.id} onClick={() => player.playSong(song)}>
-                    <img src={song.coverUrl ?? '/LOGO.png'} alt={`${song.title} cover`} />
+                    <img src={song.coverUrl ?? assetPath('LOGO.png')} alt={`${song.title} cover`} />
                     <span>
                       <strong>{song.title}</strong>
                       <small>{song.artist}</small>
