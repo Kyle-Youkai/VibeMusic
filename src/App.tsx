@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
+import { initBaiduAnalytics } from './baiduAnalytics';
 import { PlaylistPage } from './components/PlaylistPage';
 import type { PlaylistPayload } from './types';
 
 export default function App() {
   const [payload, setPayload] = useState<PlaylistPayload | null>(null);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    initBaiduAnalytics();
+  }, []);
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}data/playlist.json`)
