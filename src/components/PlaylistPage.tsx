@@ -3,6 +3,7 @@ import { ArrowLeft, Globe2, Heart, Home, Library, Play, Search, X } from 'lucide
 import { CoverArt } from './CoverArt';
 import { MiniPlayer } from './MiniPlayer';
 import { SongBlock } from './SongBlock';
+import { trackBaiduEvent, trackSongEvent } from '../baiduAnalytics';
 import { useAudioPreview } from '../hooks/useAudioPreview';
 import type { PlaylistPayload, Song } from '../types';
 
@@ -30,18 +31,34 @@ export function PlaylistPage({ payload }: PlaylistPageProps) {
   const wishlistSongs = songs.filter((song) => wishlist.has(song.id));
 
   const toggleWishlist = (songId: string) => {
+    const song = songs.find((item) => item.id === songId);
     setWishlist((current) => {
       const next = new Set(current);
       if (next.has(songId)) {
         next.delete(songId);
+        if (song) trackSongEvent('wishlist_remove', song);
       } else {
         next.add(songId);
+        if (song) trackSongEvent('wishlist_add', song);
       }
       return next;
     });
   };
 
-  const openWishlist = () => setIsWishlistOpen(true);
+  const openWishlist = () => {
+    trackBaiduEvent('wishlist', 'open_saved_list', 'Saved Songs', wishlist.size);
+    setIsWishlistOpen(true);
+  };
+
+  const openSongDetail = (song: Song) => {
+    trackSongEvent('open_detail', song);
+    setDetailSong(song);
+  };
+
+  const playSong = (song: Song) => {
+    trackSongEvent('play_song', song);
+    player.playSong(song);
+  };
 
   const playRelativeSong = (offset: number) => {
     const activeSong = player.currentSong ?? songs[0];
@@ -49,6 +66,7 @@ export function PlaylistPage({ payload }: PlaylistPageProps) {
     const nextIndex = activeIndex >= 0 ? (activeIndex + offset + songs.length) % songs.length : 0;
     const nextSong = songs[nextIndex];
     if (nextSong) {
+      trackSongEvent(offset > 0 ? 'player_next' : 'player_previous', nextSong);
       player.playSong(nextSong);
       if (detailSong) {
         setDetailSong(nextSong);
@@ -131,7 +149,7 @@ export function PlaylistPage({ payload }: PlaylistPageProps) {
                   {detailSong.previewUrl && <span>15-second preview available</span>}
                 </div>
                 <div className="detail-actions">
-                  <button className="primary-play" type="button" onClick={() => player.playSong(detailSong)}>
+                  <button className="primary-play" type="button" onClick={() => playSong(detailSong)}>
                     <Play size={24} fill="currentColor" /> Play
                   </button>
                 </div>
@@ -143,10 +161,10 @@ export function PlaylistPage({ payload }: PlaylistPageProps) {
               progress={player.progress}
               message={player.message}
               className="detail-mini-player"
-              onToggle={player.playSong}
+              onToggle={playSong}
               onPrevious={() => playRelativeSong(-1)}
               onNext={() => playRelativeSong(1)}
-              onDetail={setDetailSong}
+              onDetail={openSongDetail}
             />
           </section>
         ) : (
@@ -176,8 +194,8 @@ export function PlaylistPage({ payload }: PlaylistPageProps) {
                     isActive={player.currentSong?.id === song.id}
                     isPlaying={player.currentSong?.id === song.id && player.isPlaying}
                     isWishlisted={wishlist.has(song.id)}
-                    onPlay={player.playSong}
-                    onOpenDetail={setDetailSong}
+                    onPlay={playSong}
+                    onOpenDetail={openSongDetail}
                     onToggleWishlist={toggleWishlist}
                   />
                 ))}
@@ -193,10 +211,10 @@ export function PlaylistPage({ payload }: PlaylistPageProps) {
           isPlaying={player.isPlaying}
           progress={player.progress}
           message={player.message}
-          onToggle={player.playSong}
+          onToggle={playSong}
           onPrevious={() => playRelativeSong(-1)}
           onNext={() => playRelativeSong(1)}
-          onDetail={setDetailSong}
+          onDetail={openSongDetail}
         />
       )}
 
@@ -209,14 +227,17 @@ export function PlaylistPage({ payload }: PlaylistPageProps) {
                 <h2>Saved Songs</h2>
                 <p>{wishlistSongs.length} songs added</p>
               </div>
-              <button type="button" onClick={() => setIsWishlistOpen(false)} aria-label="Close wishlist">
+              <button type="button" onClick={() => {
+                trackBaiduEvent('wishlist', 'close_saved_list', 'Saved Songs', wishlistSongs.length);
+                setIsWishlistOpen(false);
+              }} aria-label="Close wishlist">
                 <X size={22} />
               </button>
             </div>
             {wishlistSongs.length ? (
               <div className="wishlist-list">
                 {wishlistSongs.map((song) => (
-                  <button className="wishlist-row" type="button" key={song.id} onClick={() => player.playSong(song)}>
+                  <button className="wishlist-row" type="button" key={song.id} onClick={() => playSong(song)}>
                     <img src={song.coverUrl ?? assetPath('LOGO.png')} alt={`${song.title} cover`} />
                     <span>
                       <strong>{song.title}</strong>
